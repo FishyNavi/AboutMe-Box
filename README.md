@@ -1,6 +1,6 @@
 # AboutMe-Box
 Small MSDOS-Box terminal themed "about me" static website
-
+It is deploed on Cloudflare pages
 
 ## Features
 
