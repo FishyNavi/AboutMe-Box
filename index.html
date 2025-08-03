@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>vlado | Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #000000;
+      --prompt: #000000;
+      --dim: rgba(0, 0, 0, 0.05);
+      --error: #d32f2f;
+      --link: #1976d2;
+      --cursor: #ffffff;
+      --border: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: none;
+      text-rendering: geometricPrecision;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 16px;
+      line-height: 1.4;
+      user-select: none;
+    }
+
+    #terminal {
+      height: 100vh;
+      padding: 16px;
+      overflow-y: auto;
+      word-wrap: break-word;
+      background: var(--background);
+      color: var(--foreground);
+      border: 2px solid var(--border);
+      position: relative;
+      box-shadow: inset 0 0 8px var(--dim);
+    }
+
+    #terminal::after {
+      content: "";
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.03) 50%);
+      background-size: 100% 4px;
+    }
+
+    #output-container {
+      white-space: pre-wrap;
+      margin-bottom: 8px;
+      font-feature-settings: "liga" 0;
+    }
+
+    .command-output {
+      margin-bottom: 0.8em;
+    }
+
+    .prompt-line {
+      display: none;
+      align-items: center;
+      padding-top: 8px;
+      gap: 6px;
+      font-weight: 700;
+      color: var(--prompt);
+    }
+
+    .prompt {
+      color: var(--prompt);
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+
+    .prompt-user {
+      color: var(--prompt);
+    }
+
+    #command-input {
+      background: none;
+      border: none;
+      color: var(--foreground);
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+      flex-grow: 1;
+      padding: 0;
+      caret-color: var(--cursor);
+      letter-spacing: 0.5px;
+    }
+
+    #command-input.disabled {
+      caret-color: transparent;
+      pointer-events: none;
+    }
+
+    .cursor {
+      display: inline-block;
+      background-color: var(--cursor);
+      width: 10px;
+      height: 1.2em;
+      vertical-align: middle;
+      animation: blink 1s steps(1) infinite;
+      margin-left: 4px;
+      flex-shrink: 0;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: underline;
+    }
+
+    a:hover {
+      text-decoration: none;
+    }
+
+    .error {
+      color: var(--error);
+    }
+
+    .highlight {
+      color: var(--prompt);
+      font-weight: bold;
+    }
+
+    #boot-message {
+      font-family: inherit;
+      color: var(--foreground);
+      white-space: pre;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal" tabindex="0">
+    <div id="output-container"></div>
+    <div id="boot-message">Press any key to boot<span id="dots"></span></div>
+    <div class="prompt-line">
+      <span class="prompt"><span class="prompt-user">vlado@aboutme</span>:~$</span>
+      <input type="text" id="command-input" autocomplete="off" class="disabled" readonly />
+      <span class="cursor"></span>
+    </div>
+  </div>
+
+  <script>
+    const playlist = [
+      "Bauhaus - Bella Lugosi's Dead.mp3",
+      "Devo - C'mon.mp3",
+      "Joy Division - Love Will Tear Us Apart.mp3",
+      "Joy Division - Transmission.mp3",
+      "Tears for Fears - Mad World.mp3",
+      "The Cure - A Forest.mp3",
+      "The Cure - Fascination Street (Remastered).mp3"
+    ];
+
+    let currentTrack = 0;
+    const audio = new Audio();
+    audio.volume = 0.4;
+    audio.preload = 'auto';
+    audio.muted = true;
+
+    const terminal = document.getElementById('terminal');
+    const outputContainer = document.getElementById('output-container');
+    const commandInput = document.getElementById('command-input');
+    const bootMessage = document.getElementById('boot-message');
+    const dotsSpan = document.getElementById('dots');
+
+    const commands = {
+      help: `\nAvailable commands:\n  <span class="highlight">about</span>      - Who am I?\n  <span class="highlight">socials</span>    - Me online\n  <span class="highlight">projects</span>   - My creations (WIP)\n  <span class="highlight">contact</span>    - How to reach me\n  <span class="highlight">meow</span>       - OwO?\n  <span class="highlight">music</span>      - Play background music\n  <span class="highlight">stop</span>       - Stop the music\n  <span class="highlight">welcome</span>    - A greeting, I guess\n  <span class="highlight">clear</span>      - Clears the screen`,
+
+      about: `\nHello! I'm Vlado.\nI'm a somewhat experienced Python developer with a passion for Linux, and I love writing clean and optimized code that always works, except when it doesn't.\n\nI also enjoy drawing and I'm pretty good at chess.\nI'm always ready for new, hard challenges! :3\n\nAnd also... <span class="highlight">I use arch BTW!</span>` ,
+
+      socials: `\nYou can find me on:\n  <span class="highlight">GitHub</span>     - <a href="https://github.com/FishyNavi">github.com</a>` ,
+
+      projects: `\nHmm, nothing here... yet.` ,
+
+      contact: `\nYou can contact me via email:\n  <span class="highlight">Email</span>      - <a href="mailto:johndoe@example.com">johndoe@example.com</a>` ,
+
+      meow: `\n<img src="cat.png" alt="cat" />\nMeow!` ,
+
+      music: `\nPlaying background music... <br>Type <span class="highlight">stop</span> to pause it.` ,
+
+      stop: `\nMusic paused.` ,
+
+      welcome: `\nWelcome! You can find some info about me here\n\nType '<span class="highlight">help</span>' to see a list of available commands.`
+    };
+
+    let dotsCount = 0;
+    let dotsInterval = setInterval(() => {
+      dotsCount = (dotsCount + 1) % 4;
+      dotsSpan.textContent = '.'.repeat(dotsCount);
+    }, 500);
+
+    let bootStarted = false;
+
+    function startBoot() {
+      if (bootStarted) return;
+      bootStarted = true;
+      clearInterval(dotsInterval);
+      bootMessage.style.display = 'none';
+
+      audio.muted = false;
+      playMusic();
+
+      const bootLogs = [
+        'Initializing system...',
+        'Loading modules...',
+        'Checking network interfaces...',
+        'Starting services...',
+        'Mounting filesystems...',
+        'System ready.',
+      ];
+
+      let idx = 0;
+
+      function printNextBootLog() {
+        if (idx < bootLogs.length) {
+          outputContainer.innerHTML += `<div class="command-output"><div class="output-area">${bootLogs[idx]}</div></div>`;
+          terminal.scrollTop = terminal.scrollHeight;
+          idx++;
+          setTimeout(printNextBootLog, 300);
+        } else {
+          document.querySelector('.prompt-line').style.display = 'flex';
+          commandInput.readOnly = false;
+          commandInput.classList.remove('disabled');
+          commandInput.focus();
+          executeCommand('clear');
+          executeCommand('welcome');
+        }
+      }
+
+      printNextBootLog();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!bootStarted) {
+        e.preventDefault();
+        startBoot();
+      }
+    });
+
+    terminal.addEventListener('click', () => {
+      if (bootStarted) {
+        commandInput.focus();
+      }
+    });
+
+    commandInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const command = commandInput.value.trim().toLowerCase();
+        if (command) {
+          outputContainer.innerHTML +=
+            `<div class="command-output"><span class="prompt"><span class="prompt-user">vlado@aboutme</span>:~$</span> ${command}</div>`;
+          executeCommand(command);
+          commandInput.value = '';
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+      }
+    });
+
+    audio.addEventListener('ended', () => {
+      currentTrack = (currentTrack + 1) % playlist.length;
+      audio.src = playlist[currentTrack];
+      audio.play().catch(() => {});
+    });
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function playMusic() {
+      shuffle(playlist);
+      currentTrack = 0;
+      audio.muted = false;
+      audio.src = playlist[currentTrack];
+      audio.play().catch(() => {});
+    }
+
+    function executeCommand(command) {
+      let output = '';
+      if (command === 'clear') {
+        outputContainer.innerHTML = '';
+        return;
+      } else if (command === 'music') {
+        playMusic();
+        output = commands[command];
+      } else if (command === 'stop') {
+        audio.pause();
+        output = commands[command];
+      } else if (commands[command]) {
+        output = commands[command];
+      } else {
+        output = `<span class="error">bash: command not found: ${command}</span>`;
+      }
+
+      if (output) {
+        outputContainer.innerHTML += `<div class="command-output"><div class="output-area">${output.trim()}</div></div>`;
+      }
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+  </script>
+</body>
+</html>
