@@ -9,14 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --background: #000080; /* classic blue */
-      --foreground: #ffffff; /* white text */
-      --prompt: #00ffff; /* cyan prompt */
-      --dim: rgba(255, 255, 255, 0.1);
-      --error: #ff4444; /* red error */
-      --link: #00ffff; /* cyan links */
-      --cursor: #ffffff;
-      --border: #ffffff;
+      --background: #000000;   /* black background */
+      --foreground: #FFFFFF;   /* white text */
+      --prompt: #00FF00;       /* bright green prompt, like old terminals */
+      --dim: rgba(255, 255, 255, 0.05);
+      --error: #FF4444;        /* red error text */
+      --link: #00FFFF;         /* cyan links */
+      --cursor: #FFFFFF;       /* white cursor */
+      --border: #00FF00;       /* bright green border */
     }
 
     * {
@@ -46,14 +46,7 @@
       color: var(--foreground);
       border: 2px solid var(--border);
       position: relative;
-      box-shadow: inset 0 0 12px var(--dim);
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-shadow:
-        -1px -1px 0 #000080,
-         1px -1px 0 #000080,
-        -1px  1px 0 #000080,
-         1px  1px 0 #000080; /* subtle embossed effect */
+      box-shadow: inset 0 0 8px var(--dim);
     }
 
     #terminal::after {
@@ -61,9 +54,8 @@
       pointer-events: none;
       position: absolute;
       inset: 0;
-      background: linear-gradient(rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 50%);
-      background-size: 100% 6px;
-      mix-blend-mode: overlay;
+      background: linear-gradient(rgba(255,255,255,0) 50%, rgba(255,255,255,0.03) 50%);
+      background-size: 100% 4px;
     }
 
     #output-container {
@@ -73,7 +65,7 @@
     }
 
     .command-output {
-      margin-bottom: 1em;
+      margin-bottom: 0.8em;
     }
 
     .prompt-line {
@@ -83,7 +75,6 @@
       gap: 6px;
       font-weight: 700;
       color: var(--prompt);
-      user-select: text;
     }
 
     .prompt {
@@ -106,13 +97,7 @@
       flex-grow: 1;
       padding: 0;
       caret-color: var(--cursor);
-      letter-spacing: 0.1em;
-      font-weight: 700;
-      text-shadow:
-        -1px -1px 0 #000080,
-         1px -1px 0 #000080,
-        -1px  1px 0 #000080,
-         1px  1px 0 #000080;
+      letter-spacing: 0.5px;
     }
 
     #command-input.disabled {
@@ -129,7 +114,6 @@
       animation: blink 1s steps(1) infinite;
       margin-left: 4px;
       flex-shrink: 0;
-      box-shadow: 0 0 3px var(--cursor);
     }
 
     @keyframes blink {
@@ -148,12 +132,11 @@
 
     .error {
       color: var(--error);
-      font-weight: 700;
     }
 
     .highlight {
       color: var(--prompt);
-      font-weight: 700;
+      font-weight: bold;
     }
 
     #boot-message {
@@ -161,20 +144,6 @@
       color: var(--foreground);
       white-space: pre;
       margin-bottom: 1em;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-shadow:
-        -1px -1px 0 #000080,
-         1px -1px 0 #000080,
-        -1px  1px 0 #000080,
-         1px  1px 0 #000080;
-    }
-
-    img {
-      max-height: 100px;
-      margin-top: 8px;
-      margin-bottom: 8px;
-      filter: drop-shadow(0 0 2px #000080);
     }
   </style>
 </head>
@@ -217,7 +186,7 @@
 
       about: `\nHello! I'm Vlado.\nI'm a somewhat experienced Python developer with a passion for Linux, and I love writing clean and optimized code that always works, except when it doesn't.\n\nI also enjoy drawing and I'm pretty good at chess.\nI'm always ready for new, hard challenges! :3\n\nAnd also... <span class="highlight">I use arch BTW!</span>` ,
 
-      socials: `\nYou can find me on:\n  <span class="highlight">GitHub</span>     - <a href="https://github.com/FishyNavi" target="_blank" rel="noopener noreferrer">github.com</a>` ,
+      socials: `\nYou can find me on:\n  <span class="highlight">GitHub</span>     - <a href="https://github.com/FishyNavi">github.com</a>` ,
 
       projects: `\nHmm, nothing here... yet.` ,
 
